@@ -7,22 +7,26 @@ from app.services import lesson_service
 router = APIRouter(prefix="/api", tags=["lessons"])
 
 
+def raise_service_error(exc: ValueError) -> None:
+    code = str(exc)
+    status = {"OUT_OF_HEARTS": 402, "LOCKED": 403, "NOT_FOUND": 404}.get(code, 400)
+    raise HTTPException(status_code=status, detail=code)
+
+
 @router.get("/lessons/{lesson_id}")
 def get_lesson(lesson_id: int, db: Session = Depends(get_db)):
     try:
         return lesson_service.get_lesson(db, lesson_id)
     except ValueError as exc:
-        code = str(exc)
-        status = 402 if code == "OUT_OF_HEARTS" else 403 if code == "LOCKED" else 404
-        raise HTTPException(status_code=status, detail=code)
+        raise_service_error(exc)
 
 
 @router.post("/exercises/{exercise_id}/answer")
 def answer_exercise(exercise_id: int, payload: AnswerRequest, db: Session = Depends(get_db)):
     try:
         return lesson_service.validate_answer(db, exercise_id, payload.answer)
-    except ValueError:
-        raise HTTPException(status_code=404, detail="Exercise not found")
+    except ValueError as exc:
+        raise_service_error(exc)
 
 
 @router.post("/lessons/{lesson_id}/complete")
@@ -36,5 +40,5 @@ def complete_lesson(lesson_id: int, payload: CompleteLessonRequest, db: Session 
             payload.correct_count,
             payload.total_count,
         )
-    except ValueError:
-        raise HTTPException(status_code=404, detail="Lesson not found")
+    except ValueError as exc:
+        raise_service_error(exc)

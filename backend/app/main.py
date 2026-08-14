@@ -1,7 +1,7 @@
 import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.database import init_db
+from app.seed import seed_all
 from app.routes import courses, languages, leaderboard, lessons, quests, stats, users
 
 app = FastAPI(title="Duolingo Clone API")
@@ -18,7 +18,8 @@ app.add_middleware(
 
 @app.on_event("startup")
 def startup():
-    init_db()
+    # Seed functions are idempotent, so a fresh SQLite database works at once.
+    seed_all()
 
 
 @app.get("/api/health")

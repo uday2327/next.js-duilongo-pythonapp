@@ -1,8 +1,19 @@
+
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #1f2937;
+  /* Dark theme tokens */
+  --background: #0b1216; /* page background */
+  --surface: #0f1720; /* cards / panels */
+  --card: #0c1418;
+  --foreground: #e6eef6;
+  --muted: #9aa6b0;
+  --accent: #58cc02; /* primary green accent (used for CTA, progress) */
+  --accent-contrast: #2f6b00;
+  --accent-10: rgba(88,204,2,0.08);
+  --danger: #ef4444;
+  --success: #16a34a;
+  --focus: var(--accent);
 }
 
 @theme inline {
@@ -18,8 +29,21 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+/* Utility helpers for theme-aware styling */
+.bg-surface { background: var(--surface) !important; }
+.bg-card { background: var(--card) !important; }
+.text-muted { color: var(--muted) !important; }
+.text-accent { color: var(--accent) !important; }
+.bg-accent { background: var(--accent) !important; }
+.border-accent { border-color: var(--accent) !important; }
+.accent-contrast { color: var(--accent-contrast) !important; }
+.hover-dark:hover { background: rgba(255,255,255,0.02) !important; }
+.bg-accent-10 { background: var(--accent-10) !important; }
+.text-success { color: var(--success) !important; }
+.border-success { border-color: var(--success) !important; }
+
 button, a, input {
-  outline-color: #1cb0f6;
+  outline-color: var(--focus);
 }
 
 @keyframes pop-in {
@@ -30,3 +54,12 @@ button, a, input {
 .pop-in {
   animation: pop-in .25s ease-out;
 }
+
+/* Override a few common Tailwind light utilities so components become dark-friendly */
+.bg-white { background-color: var(--card) !important; }
+.bg-slate-50 { background-color: transparent !important; }
+.bg-slate-100 { background-color: rgba(255,255,255,0.02) !important; }
+.text-slate-800 { color: var(--foreground) !important; }
+.text-slate-700 { color: var(--muted) !important; }
+.border-slate-100 { border-color: rgba(255,255,255,0.04) !important; }
+.border-slate-200 { border-color: rgba(255,255,255,0.06) !important; }

@@ -8,10 +8,6 @@ MAX_HEARTS = 5
 HEART_REGEN_MINUTES = 30
 
 
-def get_user(db: Session) -> models.User:
-    return db.get(models.User, DEFAULT_USER_ID)
-
-
 def regenerate_hearts(stats: models.UserStats) -> None:
     if stats.hearts >= MAX_HEARTS:
         stats.last_heart_regeneration_at = datetime.utcnow()
@@ -41,14 +37,6 @@ def apply_streak(stats: models.UserStats, today: date | None = None) -> None:
         stats.streak = 1
     stats.longest_streak = max(stats.longest_streak, stats.streak)
     stats.last_activity_date = today
-
-
-def lose_hearts(db: Session, mistakes: int, user_id: int = DEFAULT_USER_ID) -> models.UserStats:
-    stats = stats_for_user(db, user_id)
-    stats.hearts = max(0, stats.hearts - mistakes)
-    db.commit()
-    db.refresh(stats)
-    return stats
 
 
 def award_lesson_rewards(db: Session, lesson: models.Lesson, score: int, mistakes: int, user_id: int = DEFAULT_USER_ID) -> dict:

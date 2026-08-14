@@ -9,15 +9,20 @@ def normalize(value: str) -> str:
     return re.sub(r"\s+", " ", value.strip().lower()).rstrip(".,!?।")
 
 
-def get_lesson(db: Session, lesson_id: int, user_id: int = 1) -> dict:
-    stats = gamification_service.stats_for_user(db, user_id)
-    if stats.hearts <= 0:
-        raise ValueError("OUT_OF_HEARTS")
+def accessible_lesson(db: Session, lesson_id: int, user_id: int) -> models.Lesson:
     lesson = db.get(models.Lesson, lesson_id)
     if not lesson:
         raise ValueError("NOT_FOUND")
     if lesson_id not in progression_service.unlocked_lesson_ids(db, user_id):
         raise ValueError("LOCKED")
+    return lesson
+
+
+def get_lesson(db: Session, lesson_id: int, user_id: int = 1) -> dict:
+    lesson = accessible_lesson(db, lesson_id, user_id)
+    stats = gamification_service.stats_for_user(db, user_id)
+    if stats.hearts <= 0:
+        raise ValueError("OUT_OF_HEARTS")
     return {
         "id": lesson.id,
         "title": lesson.title,
@@ -50,6 +55,10 @@ def validate_answer(db: Session, exercise_id: int, answer, user_id: int = 1) -> 
     exercise = db.get(models.Exercise, exercise_id)
     if not exercise:
         raise ValueError("NOT_FOUND")
+    accessible_lesson(db, exercise.lesson_id, user_id)
+    stats = gamification_service.stats_for_user(db, user_id)
+    if stats.hearts <= 0:
+        raise ValueError("OUT_OF_HEARTS")
     expected = normalize(exercise.correct_answer)
     if exercise.type == "match_pairs":
         correct = isinstance(answer, dict) and all(answer.get(pair.left_text) == pair.right_text for pair in exercise.pairs)
@@ -65,7 +74,6 @@ def validate_answer(db: Session, exercise_id: int, answer, user_id: int = 1) -> 
     progress.correct_attempts += 1 if correct else 0
     progress.incorrect_attempts += 0 if correct else 1
     progress.last_attempt_at = datetime.utcnow()
-    stats = gamification_service.stats_for_user(db, user_id)
     if not correct:
         stats.hearts = max(0, stats.hearts - 1)
     db.commit()
@@ -73,9 +81,13 @@ def validate_answer(db: Session, exercise_id: int, answer, user_id: int = 1) -> 
 
 
 def complete_lesson(db: Session, lesson_id: int, score: int, mistakes: int, correct_count: int, total_count: int, user_id: int = 1) -> dict:
-    lesson = db.get(models.Lesson, lesson_id)
-    if not lesson:
-        raise ValueError("NOT_FOUND")
+    lesson = accessible_lesson(db, lesson_id, user_id)
+    stats = gamification_service.stats_for_user(db, user_id)
+    if stats.hearts <= 0:
+        raise ValueError("OUT_OF_HEARTS")
+    if correct_count > total_count:
+        raise ValueError("INVALID_COMPLETION")
+
     progress = db.query(models.UserLessonProgress).filter_by(user_id=user_id, lesson_id=lesson_id).first()
     already_completed = bool(progress and progress.completed)
     if not progress:
@@ -87,11 +99,25 @@ def complete_lesson(db: Session, lesson_id: int, score: int, mistakes: int, corr
     progress.completed = True
     progress.completed_at = progress.completed_at or datetime.utcnow()
     if already_completed:
-        reward = {"earned_xp": 0, "stats": gamification_service.stats_for_user(db, user_id)}
+        reward = {"earned_xp": 0, "stats": stats}
     else:
         reward = gamification_service.award_lesson_rewards(db, lesson, score, 0, user_id)
-        course_progress = db.query(models.UserCourseProgress).filter_by(user_id=user_id, course_id=lesson.skill.unit.course_id).one()
+        course_progress = db.query(models.UserCourseProgress).filter_by(
+            user_id=user_id,
+            course_id=lesson.skill.unit.course_id,
+        ).first()
+        if not course_progress:
+            course_progress = models.UserCourseProgress(
+                user_id=user_id,
+                course_id=lesson.skill.unit.course_id,
+                current_unit_id=lesson.skill.unit_id,
+                current_skill_id=lesson.skill_id,
+                completed_lessons=0,
+            )
+            db.add(course_progress)
         course_progress.completed_lessons += 1
+        course_progress.current_unit_id = lesson.skill.unit_id
+        course_progress.current_skill_id = lesson.skill_id
     skill_progress = progression_service.update_skill_progress(db, user_id, lesson.skill_id)
     db.commit()
     return {

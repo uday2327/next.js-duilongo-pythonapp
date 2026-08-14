@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class AnswerRequest(BaseModel):
@@ -6,14 +6,18 @@ class AnswerRequest(BaseModel):
 
 
 class CompleteLessonRequest(BaseModel):
-    score: int
-    mistakes: int
-    correct_count: int
-    total_count: int
+    score: int = Field(ge=0, le=100)
+    mistakes: int = Field(ge=0)
+    correct_count: int = Field(ge=0)
+    total_count: int = Field(gt=0)
 
 
 class GoalRequest(BaseModel):
-    daily_goal: int
+    daily_goal: int = Field(ge=1, le=100)
+
+
+class SelectCourseRequest(BaseModel):
+    course_id: int = Field(gt=0)
 
 
 class ExerciseOptionOut(BaseModel):

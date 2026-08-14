@@ -16,9 +16,9 @@ export function MultipleChoice({ exercise, disabled, selected, setSelected, corr
             onClick={() => setSelected(option.text)}
             className={cx(
               "rounded-2xl border-2 border-b-4 px-5 py-4 text-left text-lg font-black transition hover:bg-slate-50",
-              isSelected && "border-[#1cb0f6] bg-[#ddf4ff] text-[#1cb0f6]",
-              disabled && isSelected && option.text !== correctAnswer && "border-red-300 bg-red-50 text-red-600",
-              revealCorrect && "border-green-400 bg-green-50 text-green-700"
+                isSelected && "border-accent bg-accent-10 text-accent",
+                disabled && isSelected && option.text !== correctAnswer && "border-red-300 bg-red-50 text-red-600",
+                revealCorrect && "border-accent bg-accent-10 text-accent"
             )}
           >
             <span className="mr-4 text-slate-400">{index + 1}</span>{option.text}

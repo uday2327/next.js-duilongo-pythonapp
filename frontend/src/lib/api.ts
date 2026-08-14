@@ -20,6 +20,7 @@ export const api = {
   languages: (search?: string) => request<Language[]>(`/api/languages${search ? `?search=${encodeURIComponent(search)}` : ""}`),
   courseStatus: (base: string, target: string) =>
     request<{ available: boolean; message: string; course_id: number | null }>(`/api/languages/course-status?base=${encodeURIComponent(base)}&target=${encodeURIComponent(target)}`),
+  selectCourse: (course_id: number) => request<{ ok: boolean; course_id: number }>(`/api/select-course`, { method: "POST", body: JSON.stringify({ course_id }) }),
   stats: () => request<Stats>("/api/stats"),
   learn: () => request<LearnPath>("/api/learn"),
   lesson: (id: number) => request<Lesson>(`/api/lessons/${id}`),

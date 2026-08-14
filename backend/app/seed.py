@@ -94,7 +94,7 @@ def add_exercises(db, lesson, start_id):
         ("type_answer", "Translate: मेरा {hi} छोटा है।", "Type the English answer", "My {en} is small.", []),
         ("match_pairs", "Match the word pairs", "Select matching pairs", "all pairs matched", []),
         ("multiple_choice", "Which word means '{en}'?", "Choose the Hindi word", "{hi}", ["नमस्ते", "घर", "गाड़ी", "खाना"]),
-        ("type_answer", "Write this in English: I want {en}.", "Type the answer", "I want {en}.", []),
+        ("type_answer", "Write this in English: मुझे {hi} चाहिए।", "Type the answer", "I want {en}.", []),
     ]
     for index, tpl in enumerate(templates, start_id):
         hi, en = WORDS[(lesson.id + index) % len(WORDS)]
@@ -187,6 +187,22 @@ def seed_user(db, course):
         db.add(models.UserStats(user_id=1, total_xp=505, daily_xp=7, streak=1, longest_streak=3, hearts=3, gems=100, daily_goal=10, today_goal_progress=7, last_activity_date=date.today()))
         db.add(models.UserCourseProgress(user_id=1, course_id=course.id, current_unit_id=1, current_skill_id=1, completed_lessons=2))
         db.flush()
+    for user_id, username, display_name in [
+        (2, "alex", "Alex"),
+        (3, "rahul", "Rahul"),
+        (4, "priya", "Priya"),
+        (5, "meera", "Meera"),
+    ]:
+        if not db.get(models.User, user_id):
+            db.add(models.User(
+                id=user_id,
+                username=username,
+                display_name=display_name,
+                email=f"{username}@example.com",
+                avatar=display_name[:2].upper(),
+                age=None,
+            ))
+    db.flush()
 
 
 def seed_progress(db):

@@ -10,7 +10,7 @@ export function TypeAnswer({ disabled, answer, setAnswer, onEnter }: { disabled:
       onKeyDown={(event) => {
         if (event.key === "Enter" && answer.trim()) onEnter();
       }}
-      className="w-full rounded-2xl border-2 border-b-4 border-slate-200 px-5 py-4 text-xl font-bold text-slate-800 outline-none focus:border-[#1cb0f6]"
+      className="w-full rounded-2xl border-2 border-b-4 border-slate-200 px-5 py-4 text-xl font-bold text-[var(--foreground)] outline-none focus:border-accent"
       placeholder="Type in English"
     />
   );

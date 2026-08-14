@@ -8,6 +8,7 @@ export function MatchPairs({ exercise, disabled, onComplete }: { exercise: Exerc
   const [left, setLeft] = useState<string | null>(null);
   const [matched, setMatched] = useState<Record<string, string>>({});
   const [wrong, setWrong] = useState(false);
+  const [checking, setChecking] = useState(false);
   const rights = useMemo(() => [...exercise.pairs].sort((a, b) => b.right_text.localeCompare(a.right_text)), [exercise.pairs]);
 
   function chooseRight(right: string) {
@@ -17,10 +18,15 @@ export function MatchPairs({ exercise, disabled, onComplete }: { exercise: Exerc
       const next = { ...matched, [left]: right };
       setMatched(next);
       setLeft(null);
-      if (Object.keys(next).length === exercise.pairs.length) onComplete(next);
+      if (Object.keys(next).length === exercise.pairs.length) {
+        setChecking(true);
+        onComplete(next);
+      }
     } else {
       setWrong(true);
-      setTimeout(() => setWrong(false), 450);
+      setLeft(null);
+      setChecking(true);
+      onComplete({ [left]: right });
     }
   }
 
@@ -28,14 +34,14 @@ export function MatchPairs({ exercise, disabled, onComplete }: { exercise: Exerc
     <div className={cx("grid grid-cols-2 gap-4", wrong && "animate-pulse")}>
       <div className="space-y-3">
         {exercise.pairs.map((pair) => (
-          <button key={pair.id} disabled={disabled || !!matched[pair.left_text]} onClick={() => setLeft(pair.left_text)} className={cx("w-full rounded-2xl border-2 border-b-4 px-4 py-3 font-black", left === pair.left_text ? "border-[#1cb0f6] bg-[#ddf4ff]" : "border-slate-200 bg-white", matched[pair.left_text] && "opacity-20")}>
+                    <button key={pair.id} disabled={disabled || checking || !!matched[pair.left_text]} onClick={() => setLeft(pair.left_text)} className={cx("w-full rounded-2xl border-2 border-b-4 px-4 py-3 font-black", left === pair.left_text ? "border-accent bg-accent-10" : "border-slate-200 bg-card", matched[pair.left_text] && "opacity-20")}>
             {pair.left_text}
           </button>
         ))}
       </div>
       <div className="space-y-3">
         {rights.map((pair) => (
-          <button key={pair.id} disabled={disabled || Object.values(matched).includes(pair.right_text)} onClick={() => chooseRight(pair.right_text)} className="w-full rounded-2xl border-2 border-b-4 border-slate-200 bg-white px-4 py-3 font-black disabled:opacity-20">
+          <button key={pair.id} disabled={disabled || checking || Object.values(matched).includes(pair.right_text)} onClick={() => chooseRight(pair.right_text)} className="w-full rounded-2xl border-2 border-b-4 border-slate-200 bg-white px-4 py-3 font-black disabled:opacity-20">
             {pair.right_text}
           </button>
         ))}

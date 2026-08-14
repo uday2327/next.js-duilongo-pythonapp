@@ -15,7 +15,7 @@ export function WordBank({ exercise, disabled, answer, setAnswer }: { exercise: 
   const selectedText = answer.join(" ");
   return (
     <div className="space-y-8">
-      <div className="min-h-24 rounded-2xl border-2 border-dashed border-slate-200 p-4 text-lg font-bold text-slate-700">
+      <div className="min-h-24 rounded-2xl border-2 border-dashed border-slate-200 p-4 text-lg font-bold text-muted">
         {selectedText || <span className="text-slate-300">Tap words to build your answer</span>}
       </div>
       <div className="flex flex-wrap justify-center gap-3">
@@ -26,14 +26,14 @@ export function WordBank({ exercise, disabled, answer, setAnswer }: { exercise: 
               key={chip.id}
               disabled={disabled || used}
               onClick={() => setAnswer([...answer, chip.text])}
-              className="rounded-2xl border-2 border-b-4 border-slate-200 bg-white px-5 py-3 font-black text-slate-700 disabled:opacity-30"
+              className="rounded-2xl border-2 border-b-4 border-slate-200 bg-card px-5 py-3 font-black text-muted disabled:opacity-30"
             >
               {chip.text}
             </button>
           );
         })}
       </div>
-      <button disabled={disabled || answer.length === 0} onClick={() => setAnswer(answer.slice(0, -1))} className="mx-auto block text-sm font-black uppercase text-[#1cb0f6] disabled:text-slate-300">Undo word</button>
+      <button disabled={disabled || answer.length === 0} onClick={() => setAnswer(answer.slice(0, -1))} className="mx-auto block text-sm font-black uppercase text-accent disabled:text-slate-300">Undo word</button>
     </div>
   );
 }

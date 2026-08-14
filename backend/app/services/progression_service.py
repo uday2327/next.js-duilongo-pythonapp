@@ -47,7 +47,12 @@ def update_skill_progress(db: Session, user_id: int, skill_id: int) -> models.Us
 
 
 def build_learning_path(db: Session, user_id: int = 1) -> dict:
-    course = db.query(models.Course).first()
+    # prefer the user's selected course if present
+    progress = db.query(models.UserCourseProgress).filter_by(user_id=user_id).first()
+    if progress and progress.course_id:
+        course = db.get(models.Course, progress.course_id)
+    else:
+        course = db.query(models.Course).first()
     unlocked = unlocked_lesson_ids(db, user_id)
     completed_lessons = {
         p.lesson_id: p
